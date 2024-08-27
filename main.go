@@ -5,8 +5,8 @@ import (
 	"io"
 	"os"
 
+	"github.com/cavemanjay/sema/v4/agent"
 	"github.com/pkg/browser"
-	"github.com/sharpvik/sema/v3/agent"
 	"github.com/urfave/cli/v2"
 )
 
@@ -34,8 +34,10 @@ var app = &cli.App{
 	}, {
 		Name:  "Antoine Langlois",
 		Email: "antoine.l@antoine-langlois.net",
+	}, {
+		Name:  "Jaydlc",
+		Email: "slash_opt@proton.me",
 	}},
-
 	Flags: []cli.Flag{
 		&cli.BoolFlag{
 			Name:    add,
@@ -69,8 +71,7 @@ var app = &cli.App{
 		},
 	},
 	UseShortOptionHandling: true,
-
-	Action: run,
+	Action:                 run,
 	Commands: []*cli.Command{{
 		Name:   "github",
 		Usage:  "Open sema GitHub repository in browser",
@@ -79,12 +80,46 @@ var app = &cli.App{
 }
 
 func run(c *cli.Context) error {
-	do := agent.New(config(c))
-	return pipe(do.Init, do.Title).
-		thenIf(c.Bool(add), do.Add).
-		then(do.Commit).
-		thenIf(c.Bool(push), do.Push).
-		run()
+	a := agent.New(config(c))
+	if err := a.Init(); err != nil {
+		return err
+	}
+
+	details, err := GetCommitDetails()
+	if err != nil {
+		return err
+	}
+
+	if err := a.Title(
+		details.CommitLabel+a.MaybeBreakingExclam(),
+		agent.BracketedOrEmpty(details.ChangeScope),
+		details.CommitMessage,
+	); err != nil {
+		return err
+	}
+
+	if c.Bool(add) {
+		if err := a.Add(); err != nil {
+			return err
+		}
+	}
+
+	if err := a.Commit(); err != nil {
+		return err
+	}
+
+	if c.Bool(push) {
+		if err := a.Push(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+	// return pipe(do.Init, do.Title).
+	// 	thenIf(c.Bool(add), do.Add).
+	// 	then(do.Commit).
+	// 	thenIf(c.Bool(push), do.Push).
+	// 	run()
 }
 
 func config(c *cli.Context) *agent.Config {

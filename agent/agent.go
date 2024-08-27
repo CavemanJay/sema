@@ -49,8 +49,8 @@ func (a *Agent) Init() (err error) {
 	return
 }
 
-func (a *Agent) Title() error {
-	a.commitTitle = fmt.Sprintf("%s%s: %s", a.label(), scope(), synopsis())
+func (a *Agent) Title(label, scope, message string) error {
+	a.commitTitle = fmt.Sprintf("%s%s: %s", label, scope, message)
 	return nil
 }
 
@@ -101,7 +101,7 @@ func (a *Agent) createCommitTemplate() (string, error) {
 }
 
 func editCommitTemplate(path string) (string, error) {
-	if err := try(exec.Command(editor(), path)); err != nil {
+	if err := try(exec.Command("cmd", "/C", editor(), path)); err != nil {
 		return "", err
 	}
 	return readCommitMessageFromTemplate(path)
@@ -126,7 +126,7 @@ func readCommitMessageFromTemplate(path string) (string, error) {
 }
 
 func (a *Agent) shortCommit() error {
-	display(a.commitTitle)
+	// display(a.commitTitle)
 	_, err := a.workTree.Commit(a.commitTitle, &git.CommitOptions{})
 	return err
 }

@@ -63,3 +63,7 @@ func Explained() (labels []string) {
 func Get(index int) Label {
 	return list[index]
 }
+
+func Labels() [9]Label {
+	return list
+}
