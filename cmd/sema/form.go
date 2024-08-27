@@ -27,12 +27,15 @@ func GetCommitDetails() (CommitDetails, error) {
 			huh.NewSelect[string]().
 				Title("Commit label").
 				Options(commitLabelOptions...).
-				Value(&details.CommitLabel)),
+				Value(&details.CommitLabel).
+				Height(8),
+		),
 		huh.NewGroup(
 			huh.NewInput().
 				Title("Change Scope").
 				Description("readme, database, etc.").
-				Value(&details.ChangeScope)),
+				Value(&details.ChangeScope),
+		),
 		huh.NewGroup(
 			huh.NewInput().
 				Title("Commit Message").Value(&details.CommitMessage).
