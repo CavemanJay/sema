@@ -1,16 +1,18 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"os"
 
-	"github.com/cavemanjay/sema/v4/agent"
+	"github.com/cavemanjay/sema/v5/pkg/agent"
+	"github.com/charmbracelet/huh"
 	"github.com/pkg/browser"
 	"github.com/urfave/cli/v2"
 )
 
-const gitHubURL = "https://github.com/sharpvik/sema"
+const gitHubURL = "https://github.com/cavemanjay/sema"
 
 const (
 	add      = "add"
@@ -142,7 +144,7 @@ func github(_ *cli.Context) error {
 }
 
 func main() {
-	if err := app.Run(os.Args); err != nil {
+	if err := app.Run(os.Args); err != nil && !errors.Is(err, huh.ErrUserAborted) {
 		fmt.Fprintln(os.Stderr, err)
 	}
 }

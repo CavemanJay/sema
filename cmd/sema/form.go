@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/cavemanjay/sema/v4/labels"
+	"github.com/cavemanjay/sema/v5/pkg/labels"
 	"github.com/charmbracelet/huh"
 )
 

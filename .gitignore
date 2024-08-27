@@ -16,9 +16,6 @@ bin/
 # vendor/
 
 # AUR package information
-pkg/
 *.zst
-sema/
 src/
-
 dist/

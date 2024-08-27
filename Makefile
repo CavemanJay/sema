@@ -4,8 +4,8 @@ VERSION_BUILD_FLAG := -ldflags '-X main.version=$(VERSION)'
 
 
 build:
-	go build -o ./bin/ $(VERSION_BUILD_FLAG) .
+	go build -o ./bin/ $(VERSION_BUILD_FLAG) ./cmd/sema
 
 install:
 # go install -ldflags -w -s -X main.version=$(VERSION)
-	go install -ldflags -w -s  $(VERSION_BUILD_FLAG)
+	go install -ldflags '-w -s' $(VERSION_BUILD_FLAG) ./cmd/sema
