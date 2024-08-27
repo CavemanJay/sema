@@ -7,7 +7,6 @@ toolchain go1.23.0
 require (
 	github.com/charmbracelet/huh v0.5.3
 	github.com/go-git/go-git/v5 v5.12.0
-	github.com/logrusorgru/aurora v2.0.3+incompatible
 	github.com/magefile/mage v1.15.0
 	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c
 	github.com/urfave/cli/v2 v2.27.4

@@ -1,18 +1,11 @@
 package agent
 
 import (
-	"fmt"
 	"os"
 	"os/exec"
-
-	"github.com/logrusorgru/aurora"
 )
 
 const defaultGitEditor = "vi"
-
-func display(message string) {
-	fmt.Printf("Commit: %v\n\n", aurora.Green(message))
-}
 
 func try(cmd *exec.Cmd) error {
 	cmd.Stdin = os.Stdin
