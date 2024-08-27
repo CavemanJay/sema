@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 
 	"github.com/cavemanjay/sema/v5/pkg/agent"
 	"github.com/charmbracelet/huh"
@@ -87,18 +88,20 @@ func run(c *cli.Context) error {
 		return err
 	}
 
-	details, err := GetCommitDetails()
+	details, err := GetCommitDetails(a)
 	if err != nil {
 		return err
 	}
 
-	if err := a.Title(
-		details.CommitLabel+a.MaybeBreakingExclam(),
-		agent.BracketedOrEmpty(details.ChangeScope),
-		details.CommitMessage,
-	); err != nil {
-		return err
-	}
+	fmt.Println(huh.NewInput().Title("Commit Label ").Inline(true).Value(&details.CommitLabel).View())
+	fmt.Println(huh.NewInput().Title("Change Scope ").Inline(true).Value(&details.ChangeScope).View())
+	fmt.Println(huh.NewInput().Title("Commit Message ").Inline(true).Value(&details.CommitMessage).View())
+
+	formattedDetails := details
+	formattedDetails.ChangeScope = agent.BracketedOrEmpty(details.ChangeScope)
+	formattedDetails.CommitLabel += a.MaybeBreakingExclam()
+
+	a.Title(formattedDetails.CommitLabel, formattedDetails.ChangeScope, formattedDetails.CommitMessage)
 
 	if c.Bool(add) {
 		if err := a.Add(); err != nil {
@@ -106,9 +109,12 @@ func run(c *cli.Context) error {
 		}
 	}
 
-	if err := a.Commit(); err != nil {
+	commitBody, err := a.Commit()
+	if err != nil {
 		return err
 	}
+
+	fmt.Println(huh.NewText().Title("Commit").Lines(lines(commitBody)).ShowLineNumbers(true).Value(&commitBody).View())
 
 	if c.Bool(push) {
 		if err := a.Push(); err != nil {
@@ -147,4 +153,12 @@ func main() {
 	if err := app.Run(os.Args); err != nil && !errors.Is(err, huh.ErrUserAborted) {
 		fmt.Fprintln(os.Stderr, err)
 	}
+}
+
+func lines(s string) int {
+	n := strings.Count(s, "\n")
+	if len(s) > 0 && !strings.HasSuffix(s, "\n") {
+		n++
+	}
+	return n
 }

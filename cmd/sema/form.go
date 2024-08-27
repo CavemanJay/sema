@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 
+	"github.com/cavemanjay/sema/v5/pkg/agent"
 	"github.com/cavemanjay/sema/v5/pkg/labels"
 	"github.com/charmbracelet/huh"
 )
@@ -13,7 +14,7 @@ type CommitDetails struct {
 	CommitMessage string
 }
 
-func GetCommitDetails() (CommitDetails, error) {
+func GetCommitDetails(a *agent.Agent) (CommitDetails, error) {
 	var (
 		commitLabelOptions = make([]huh.Option[string], 0, len(labels.Labels()))
 		details            CommitDetails
@@ -22,14 +23,14 @@ func GetCommitDetails() (CommitDetails, error) {
 	for _, l := range labels.Labels() {
 		commitLabelOptions = append(commitLabelOptions, huh.Option[string]{Key: l.String(), Value: l.Name})
 	}
+	ctrlLabel := huh.NewSelect[string]().
+		Title("Commit label").
+		Options(commitLabelOptions...).
+		Value(&details.CommitLabel).
+		Height(8)
+
 	form := huh.NewForm(
-		huh.NewGroup(
-			huh.NewSelect[string]().
-				Title("Commit label").
-				Options(commitLabelOptions...).
-				Value(&details.CommitLabel).
-				Height(8),
-		),
+		huh.NewGroup(ctrlLabel),
 		huh.NewGroup(
 			huh.NewInput().
 				Title("Change Scope").

@@ -3,8 +3,10 @@ package agent
 import (
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"os/exec"
+	"runtime"
 	"strings"
 
 	"github.com/go-git/go-git/v5"
@@ -49,16 +51,15 @@ func (a *Agent) Init() (err error) {
 	return
 }
 
-func (a *Agent) Title(label, scope, message string) error {
+func (a *Agent) Title(label, scope, message string) {
 	a.commitTitle = fmt.Sprintf("%s%s: %s", label, scope, message)
-	return nil
 }
 
 func (a *Agent) Add() error {
 	return try(exec.Command("git", "add", "."))
 }
 
-func (a *Agent) Commit() error {
+func (a *Agent) Commit() (string, error) {
 	if a.Config.Commit.Long {
 		return a.longCommit()
 	} else {
@@ -77,17 +78,17 @@ func (a *Agent) Push() error {
 	return try(exec.Command("git", args...))
 }
 
-func (a *Agent) longCommit() error {
+func (a *Agent) longCommit() (string, error) {
 	path, err := a.createCommitTemplate()
 	if err != nil {
-		return fmt.Errorf("failed to create commit template file: %s", err)
+		return "", fmt.Errorf("failed to create commit template file: %s", err)
 	}
 	msg, err := editCommitTemplate(path)
 	if err != nil {
-		return fmt.Errorf("failed to edit template: %s", err)
+		return "", fmt.Errorf("failed to edit template: %s", err)
 	}
 	_, err = a.workTree.Commit(msg, &git.CommitOptions{})
-	return err
+	return msg, err
 }
 
 func (a *Agent) createCommitTemplate() (string, error) {
@@ -101,8 +102,18 @@ func (a *Agent) createCommitTemplate() (string, error) {
 }
 
 func editCommitTemplate(path string) (string, error) {
-	if err := try(exec.Command("cmd", "/C", editor(), path)); err != nil {
-		return "", err
+	switch runtime.GOOS {
+	case "windows":
+		if err := try(exec.Command("cmd", "/C", editor(), path)); err != nil {
+			return "", err
+		}
+	case "linux":
+		cmd := exec.Command("bash", "-c", fmt.Sprintf(`%s %s`, editor(), path))
+		if err := try(cmd); err != nil {
+			return "", err
+		}
+	default:
+		log.Fatalf("Running on an unsupported OS: %s\n", runtime.GOOS)
 	}
 	return readCommitMessageFromTemplate(path)
 }
@@ -125,8 +136,8 @@ func readCommitMessageFromTemplate(path string) (string, error) {
 	return string(contents), err
 }
 
-func (a *Agent) shortCommit() error {
+func (a *Agent) shortCommit() (string, error) {
 	// display(a.commitTitle)
 	_, err := a.workTree.Commit(a.commitTitle, &git.CommitOptions{})
-	return err
+	return a.commitTitle, err
 }
